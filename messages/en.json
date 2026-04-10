@@ -1,0 +1,77 @@
+{
+    "nav": {
+        "home": "Home",
+        "browse": "Browse",
+        "write": "Write",
+        "library": "My Library",
+        "login": "Login",
+        "logout": "Logout",
+        "profile": "Profile"
+    },
+    "home": {
+        "hero_title": "Read Stories, Write Your Own",
+        "hero_subtitle": "Discover thousands of stories in Gujarati, Hindi and English. Share your own with the world.",
+        "start_reading": "Start Reading",
+        "start_writing": "Start Writing",
+        "trending": "Trending Stories",
+        "new": "New Arrivals",
+        "genres": "Browse by Genre",
+        "stats_languages": "Languages",
+        "stats_genres": "Genres",
+        "stats_free": "Free to read",
+        "stats_writers": "Writers welcome"
+    },
+    "story": {
+        "read_now": "Read Now",
+        "save": "Save to Library",
+        "saved": "Saved",
+        "like": "Like",
+        "chapters": "Chapters",
+        "by": "by",
+        "reads": "reads",
+        "draft": "Draft",
+        "published": "Published",
+        "publish": "Publish",
+        "save_draft": "Save Draft"
+    },
+    "auth": {
+        "login": "Login",
+        "signup": "Sign Up",
+        "email": "Email",
+        "password": "Password",
+        "username": "Username",
+        "no_account": "Don't have an account?",
+        "have_account": "Already have an account?",
+        "full_name": "Full Name"
+    },
+    "genres": {
+        "general": "General",
+        "romance": "Romance",
+        "thriller": "Thriller",
+        "horror": "Horror",
+        "comedy": "Comedy",
+        "poetry": "Poetry",
+        "biography": "Biography",
+        "fantasy": "Fantasy",
+        "spiritual": "Spiritual"
+    },
+    "common": {
+        "loading": "Loading...",
+        "error": "Something went wrong",
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "edit": "Edit",
+        "submit": "Submit",
+        "back": "Back",
+        "language": "Language"
+    },
+    "footer": {
+        "tagline": "Read and write stories in Gujarati, Hindi and English.",
+        "explore": "Explore",
+        "write": "Write",
+        "languages": "Languages",
+        "new_story": "New Story",
+        "copyright": "Made with ❤️ for Indian literature."
+    }
+}
