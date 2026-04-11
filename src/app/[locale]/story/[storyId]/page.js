@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar'
 import StoryActions from '@/components/StoryActions'
 import Link from 'next/link'
 import { BookOpen, Heart, Eye, ChevronRight, User, Calendar } from 'lucide-react'
+import Comments from '@/components/Comments'
 
 const langLabels = { en: 'English', hi: 'हिन्दी', gu: 'ગુજરાતી' }
 
@@ -203,6 +204,12 @@ export default async function StoryPage({ params }) {
                         </div>
                     </div>
                 </div>
+                {/* Comments */}
+                <Comments
+                    storyId={storyId}
+                    userId={user?.id}
+                    locale={locale}
+                />
             </div>
         </div>
     )
