@@ -7,6 +7,7 @@ import { BookOpen, PenSquare, Library, LogIn, Menu, X, Globe } from 'lucide-reac
 import { useState } from 'react'
 import { LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import ThemeToggle from './ThemeToggle'
 
 export default function Navbar({ user, locale }) {
     const t = useTranslations('nav')
@@ -65,6 +66,9 @@ export default function Navbar({ user, locale }) {
 
                 {/* Right side */}
                 <div className="flex items-center gap-3">
+
+                    {/* Theme toggle */}
+                    <ThemeToggle />
 
                     {/* Language switcher */}
                     <div className="relative">
