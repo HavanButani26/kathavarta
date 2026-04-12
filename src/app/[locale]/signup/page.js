@@ -65,6 +65,18 @@ export default function SignupPage() {
             return
         }
 
+        const { data: existingEmail } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('email', form.email.toLowerCase())
+            .maybeSingle()
+
+        if (existingEmail) {
+            setError('An account with this email already exists. Please login instead.')
+            setLoading(false)
+            return
+        }
+
         // Create account
         const { error } = await supabase.auth.signUp({
             email: form.email,
@@ -263,11 +275,11 @@ export default function SignupPage() {
                                             <div
                                                 key={i}
                                                 className={`h-1 flex-1 rounded-full transition-all ${form.password.length >= i * 3
-                                                        ? i <= 1 ? 'bg-red-400'
-                                                            : i <= 2 ? 'bg-yellow-400'
-                                                                : i <= 3 ? 'bg-teal-400'
-                                                                    : 'bg-teal-600'
-                                                        : 'bg-gray-100 dark:bg-gray-600'
+                                                    ? i <= 1 ? 'bg-red-400'
+                                                        : i <= 2 ? 'bg-yellow-400'
+                                                            : i <= 3 ? 'bg-teal-400'
+                                                                : 'bg-teal-600'
+                                                    : 'bg-gray-100 dark:bg-gray-600'
                                                     }`}
                                             />
                                         ))}
