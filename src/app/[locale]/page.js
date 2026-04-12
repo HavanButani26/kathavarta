@@ -1,43 +1,30 @@
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
-import { BookOpen, PenSquare, ChevronRight } from 'lucide-react'
+import { BookOpen, PenSquare, ChevronRight, Search } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import Navbar from '@/components/Navbar'
 import StoryCard from '@/components/StoryCard'
 
 const genres = [
-  { key: 'romance', emoji: '💕' },
-  { key: 'thriller', emoji: '🔪' },
-  { key: 'horror', emoji: '👻' },
-  { key: 'comedy', emoji: '😂' },
-  { key: 'poetry', emoji: '✍️' },
-  { key: 'biography', emoji: '📖' },
-  { key: 'fantasy', emoji: '🧙' },
-  { key: 'spiritual', emoji: '🕉️' },
-  { key: 'general', emoji: '📚' },
-]
-
-const genreColors = [
-  'from-pink-50 to-pink-100 text-pink-700 border-pink-200',
-  'from-orange-50 to-orange-100 text-orange-700 border-orange-200',
-  'from-red-50 to-red-100 text-red-700 border-red-200',
-  'from-yellow-50 to-yellow-100 text-yellow-700 border-yellow-200',
-  'from-purple-50 to-purple-100 text-purple-700 border-purple-200',
-  'from-blue-50 to-blue-100 text-blue-700 border-blue-200',
-  'from-indigo-50 to-indigo-100 text-indigo-700 border-indigo-200',
-  'from-green-50 to-green-100 text-green-700 border-green-200',
-  'from-gray-50 to-gray-100 text-gray-700 border-gray-200',
+  { key: 'romance', img: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=300&q=80' },
+  { key: 'thriller', img: 'https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=300&q=80' },
+  { key: 'horror', img: 'https://images.unsplash.com/photo-1505635552518-3448ff116af3?w=400&q=80', },
+  { key: 'comedy', img: 'https://images.unsplash.com/photo-1527224857830-43a7acc85260?w=300&q=80' },
+  { key: 'poetry', img: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=300&q=80' },
+  { key: 'biography', img: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=300&q=80' },
+  { key: 'fantasy', img: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=300&q=80' },
+  { key: 'spiritual', img: 'https://images.unsplash.com/photo-1528715471579-d1bcf0ba5e83?w=300&q=80' },
+  { key: 'general', img: 'https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=300&q=80' },
 ]
 
 export default async function Home({ params }) {
   const { locale } = await params
   const supabase = await createClient()
-
-  // Load translations on the server with the correct locale
   const t = await getTranslations({ locale, namespace: '' })
 
   const { data: { user } } = await supabase.auth.getUser()
 
+  // Fetch trending stories
   const { data: trending } = await supabase
     .from('stories')
     .select('*, profiles(username, avatar_url)')
@@ -45,6 +32,7 @@ export default async function Home({ params }) {
     .order('total_likes', { ascending: false })
     .limit(6)
 
+  // Fetch newest stories
   const { data: newest } = await supabase
     .from('stories')
     .select('*, profiles(username, avatar_url)')
@@ -52,12 +40,30 @@ export default async function Home({ params }) {
     .order('created_at', { ascending: false })
     .limit(6)
 
+  // Fetch word counts from first chapters for reading time
+  const storyIds = [...(trending || []), ...(newest || [])].map(s => s.id)
+  const { data: firstChapters } = storyIds.length > 0
+    ? await supabase
+      .from('chapters')
+      .select('story_id, content')
+      .in('story_id', storyIds)
+      .eq('chapter_number', 1)
+      .eq('status', 'published')
+    : { data: [] }
+
+  // Build word count map
+  const wordCountMap = {}
+  firstChapters?.forEach(ch => {
+    const text = ch.content?.replace(/<[^>]+>/g, '') || ''
+    wordCountMap[ch.story_id] = text.split(/\s+/).filter(Boolean).length
+  })
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Navbar user={user} locale={locale} />
 
       {/* Hero */}
-      <section className="bg-gradient-to-br from-teal-600 via-teal-700 to-teal-800 text-white">
+      <section className="bg-linear-to-br from-teal-600 via-teal-700 to-teal-800 text-white">
         <div className="max-w-6xl mx-auto px-4 py-20 flex flex-col items-center text-center gap-6">
           <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-1.5 rounded-full text-sm">
             <span>ગ</span><span>·</span><span>क</span><span>·</span><span>A</span>
@@ -85,12 +91,33 @@ export default async function Home({ params }) {
               {t('home.start_writing')}
             </Link>
           </div>
+
+          {/* Search bar */}
+          <form
+            action={`/${locale}/browse`}
+            method="GET"
+            className="w-full max-w-lg flex gap-2 mt-2"
+          >
+            <div className="relative flex-1">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                name="search"
+                placeholder="Search stories, authors..."
+                className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-white/50 bg-white/90 backdrop-blur-sm"
+              />
+            </div>
+            <button
+              type="submit"
+              className="bg-white text-teal-700 font-semibold px-5 py-3 rounded-xl hover:bg-teal-50 transition-colors text-sm"
+            >
+              Search
+            </button>
+          </form>
         </div>
       </section>
 
       {/* Stats */}
-      {/* Stats */}
-      <div className="bg-white border-b border-gray-100">
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
         <div className="max-w-6xl mx-auto px-4 py-4 grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { label: t('home.stats_languages'), value: '3' },
@@ -100,7 +127,7 @@ export default async function Home({ params }) {
           ].map(s => (
             <div key={s.label} className="text-center">
               <div className="text-xl font-bold text-teal-600">{s.value}</div>
-              <div className="text-xs text-gray-500">{s.label}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">{s.label}</div>
             </div>
           ))}
         </div>
@@ -110,34 +137,42 @@ export default async function Home({ params }) {
       {trending?.length > 0 && (
         <section className="max-w-6xl mx-auto px-4 py-12">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-800">{t('home.trending')}</h2>
+            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">{t('home.trending')}</h2>
             <Link href={`/${locale}/browse`} className="text-sm text-teal-600 hover:text-teal-700 flex items-center gap-1">
               View all <ChevronRight size={16} />
             </Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {trending.map(story => (
-              <StoryCard key={story.id} story={story} locale={locale} />
+              <StoryCard key={story.id} story={story} locale={locale} wordCount={wordCountMap[story.id]} />
             ))}
           </div>
         </section>
       )}
 
-      {/* Genres */}
-      <section className="bg-white border-y border-gray-100 py-12">
+      {/* Genres with images */}
+      <section className="bg-white dark:bg-gray-900 border-y border-gray-100 dark:border-gray-800 py-12">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-xl font-bold text-gray-800 mb-6">{t('home.genres')}</h2>
+          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6">{t('home.genres')}</h2>
           <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3">
-            {genres.map((g, i) => (
+            {genres.map((g) => (
               <Link
                 key={g.key}
                 href={`/${locale}/browse?genre=${g.key}`}
-                className={`flex flex-col items-center gap-2 p-3 rounded-xl border bg-gradient-to-b ${genreColors[i]} hover:shadow-sm transition-all`}
+                className="group flex flex-col items-center rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all hover:-translate-y-0.5"
               >
-                <span className="text-2xl">{g.emoji}</span>
-                <span className="text-xs font-medium text-center leading-tight">
-                  {t(`genres.${g.key}`)}
-                </span>
+                <div className="w-full h-20 overflow-hidden">
+                  <img
+                    src={g.img}
+                    alt={g.key}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="w-full bg-white dark:bg-gray-800 px-2 py-2 text-center">
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300 leading-tight">
+                    {t(`genres.${g.key}`)}
+                  </span>
+                </div>
               </Link>
             ))}
           </div>
@@ -148,21 +183,21 @@ export default async function Home({ params }) {
       {newest?.length > 0 && (
         <section className="max-w-6xl mx-auto px-4 py-12">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-800">{t('home.new')}</h2>
+            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">{t('home.new')}</h2>
             <Link href={`/${locale}/browse`} className="text-sm text-teal-600 hover:text-teal-700 flex items-center gap-1">
               View all <ChevronRight size={16} />
             </Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {newest.map(story => (
-              <StoryCard key={story.id} story={story} locale={locale} />
+              <StoryCard key={story.id} story={story} locale={locale} wordCount={wordCountMap[story.id]} />
             ))}
           </div>
         </section>
       )}
 
       {/* Footer */}
-      <footer className="bg-gray-800 text-gray-400 mt-16">
+      <footer className="bg-gray-800 dark:bg-gray-950 text-gray-400 mt-16">
         <div className="max-w-6xl mx-auto px-4 py-10 grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-3">
@@ -197,7 +232,7 @@ export default async function Home({ params }) {
             </div>
           </div>
         </div>
-        <div className="border-t border-gray-700 text-center text-xs py-4">
+        <div className="border-t border-gray-700 dark:border-gray-800 text-center text-xs py-4">
           © {new Date().getFullYear()} Kathavarta. {t('footer.copyright')}
         </div>
       </footer>

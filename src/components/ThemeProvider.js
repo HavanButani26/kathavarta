@@ -9,6 +9,7 @@ export default function ThemeProvider({ children }) {
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange={false}
+            enableColorScheme
         >
             {children}
         </NextThemesProvider>
