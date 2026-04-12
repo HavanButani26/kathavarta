@@ -33,13 +33,6 @@ export default async function StoryPage({ params }) {
         .eq('status', 'published')
         .order('chapter_number', { ascending: true })
 
-    // Increment read count (fire and forget)
-    supabase
-        .from('stories')
-        .update({ total_reads: story.total_reads + 1 })
-        .eq('id', storyId)
-        .then(() => { })
-
     // Check if user liked / saved this story
     let userLiked = false
     let userSaved = false

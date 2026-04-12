@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, BookOpen, List } from 'lucide-react'
+import ReadTracker from '@/components/ReadTracker'
 
 export default async function ChapterReadPage({ params }) {
     const { locale, storyId, chapterId } = await params
@@ -38,13 +39,6 @@ export default async function ChapterReadPage({ params }) {
     const prevChapter = currentIndex > 0 ? allChapters[currentIndex - 1] : null
     const nextChapter = currentIndex < allChapters?.length - 1 ? allChapters[currentIndex + 1] : null
 
-    // Increment chapter read count
-    supabase
-        .from('chapters')
-        .update({ read_count: (chapter.read_count || 0) + 1 })
-        .eq('id', chapterId)
-        .then(() => { })
-
     // Save reading progress if logged in
     if (user) {
         supabase.from('reading_progress').upsert({
@@ -58,7 +52,7 @@ export default async function ChapterReadPage({ params }) {
     return (
         <div className="min-h-screen bg-gray-50">
             <Navbar user={user} locale={locale} />
-
+            <ReadTracker storyId={storyId} userId={user?.id} />
             {/* Reading header */}
             <div className="bg-white border-b border-gray-100 sticky top-16 z-40">
                 <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
